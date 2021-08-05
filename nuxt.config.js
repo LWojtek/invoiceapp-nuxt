@@ -42,9 +42,9 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    'nuxt-uid-module'
   ],
-
   router: {
     extendRoutes (routes) {
       routes.push(

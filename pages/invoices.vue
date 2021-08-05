@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <h1>Invoices</h1>
+  <div class="container invoices">
+    <VContent />
   </div>
 </template>
 
@@ -12,8 +12,15 @@ export default {
 
 <style lang="scss" scoped>
 
-h1 {
-  font-size: 4rem;
-}
+.invoices {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
+  width: 100%;
+
+  @media screen and (max-width: 999px){
+    padding-top: 10.3rem;
+  }
+}
 </style>

@@ -5,10 +5,10 @@
     </div>
     <div class="header__buttons">
       <div class="header__switch">
-        <i class="fas fa-3x fa-moon" />
+        <i class="fas fa-lg fa-moon" />
       </div>
       <div class="header__logout">
-        <i class="fas fa-3x fa-power-off" />
+        <i class="fas fa-lg fa-power-off" />
       </div>
     </div>
   </header>
@@ -29,6 +29,7 @@ header {
   align-items: center;
 
   position: fixed;
+  z-index: 10;
   top: 0;
   bottom: 0;
   width: 10.3rem;

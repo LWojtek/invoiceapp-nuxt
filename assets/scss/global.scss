@@ -10,10 +10,50 @@ html {
 
 body {
   font-family: 'Avenir', sans-serif;
+  background: #F9F9FB;
+  font-size: 1.4rem;
+  width: 100vw;
+  height: 100vh;
 }
+
+
+h1 {
+  font-size: 2.8rem;
+}
+
+h2 {
+  font-size: 2.4rem;
+}
+
+h3 {
+  font-size: 2rem;
+}
+
+// Helper classes
 
 .container {
   max-width: 80rem;
   width: 100%;
   margin: 0 auto;
+}
+
+.flex__col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .flex-30 {
+    flex-basis: 30%;
+  }
+
+  .flex-50 {
+    flex-basis: 48%;
+  }
 }
