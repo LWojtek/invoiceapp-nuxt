@@ -1,6 +1,7 @@
-import db from '~/plugins/firebaseInit'
+import firebaseApp from '~/plugins/firebaseInit'
 
 export const state = () => ({
+  isAuth: false,
   invoiceModal: null,
   modal: null,
   invoiceData: [
@@ -54,6 +55,9 @@ export const mutations = {
   },
   setInvoiceData (state, payload) {
     state.invoiceData = payload
+  },
+  auth (state, payload) {
+    state.isAuth = payload
   }
 }
 
@@ -68,7 +72,7 @@ export const actions = {
     commit('resetModal')
   },
   async getInvoices ({ commit, state }) {
-    const getData = db.collection('invoices')
+    const getData = firebaseApp.firestore().collection('invoices')
     const results = await getData.get()
     const dataArr = results.docs.map(doc => doc.data())
     commit('setInvoiceData', dataArr)

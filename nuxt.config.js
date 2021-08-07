@@ -28,7 +28,8 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    '~/plugins/firebaseInit.js'
+    '~/plugins/firebaseInit.js',
+    { src: '~/plugins/vuex-persist', ssr: false }
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -71,7 +72,8 @@ export default {
         //   component: '@/components/pages/index.vue'
         // }
       )
-    }
+    },
+    middleware: 'router'
 
   },
 

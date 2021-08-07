@@ -221,7 +221,7 @@
 
 import { mapState, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
-import db from '~/plugins/firebaseInit'
+import firebaseApp from '~/plugins/firebaseInit'
 
 export default {
   data () {
@@ -267,6 +267,9 @@ export default {
   },
   watch: {
     paymentTerms () {
+      if (this.paymentTerms === null) {
+        return
+      }
       const futureDate = new Date()
       this.paymentDueDateUnix = futureDate.setDate(futureDate.getDate() + parseInt(this.paymentTerms))
       this.paymentDueDate = new Date(this.paymentDueDateUnix).toLocaleDateString('en-us', this.dateOptions)
@@ -334,7 +337,7 @@ export default {
       }
       this.invoiceProcessing = true
       this.calcInvoiceTotal()
-      const dataBase = db.collection('invoices').doc()
+      const dataBase = firebaseApp.firestore().collection('invoices').doc()
 
       await dataBase.set({
         id: `${uuidv4().slice(1, 6).toUpperCase()}`,
