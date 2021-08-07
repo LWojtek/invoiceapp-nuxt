@@ -1,7 +1,7 @@
 <template>
   <ul class="invoice__container">
-    <VInvoice
-      v-for="invoice in invoices"
+    <VInvoiceListItem
+      v-for="invoice in invoiceData"
       :key="invoice.id"
       :invoice="invoice"
     />
@@ -9,11 +9,13 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   computed: {
-    invoices () {
-      return this.$store.state.invoices
-    }
+    ...mapState([
+      'invoiceData'
+    ])
   }
 }
 </script>

@@ -1,40 +1,55 @@
 <template>
-  <li class="invoice">
-    <div class="invoice__id">
-      {{ invoice.id }}
-    </div>
-    <div class="invoice__date">
-      {{ invoice.date }}
-    </div>
-    <div class="invoice__name">
-      {{ invoice.name }}
-    </div>
-    <div class="invoice__amount">
-      {{ invoice.amount }}
-    </div>
-    <div class="invoice__status" :class="invoice.status">
-      <div class="icon__wrapper">
-        <i class="fas fa-dot-circle" />
+  <nuxt-link style="text-decoration: none; color: inherit;" :to="`/invoices/${invoice.id}`">
+    <li class="invoice">
+      <div class="invoice__id">
+        {{ invoice.id }}
       </div>
-      <div class="invoice__status--text">
-        {{ invoice.status }}
+      <div class="invoice__date">
+        {{ invoice.invoiceDate }}
       </div>
-    </div>
-    <div class="invoice__icon">
-      <i class="fas fa-lg fa-chevron-circle-right" />
-    </div>
-  </li>
+      <div class="invoice__name">
+        {{ invoice.clientName }}
+      </div>
+      <div class="invoice__amount">
+        ${{ invoice.invoiceTotal }}
+      </div>
+      <div
+        class="invoice__status"
+        :class="{ paid: invoice.invoicePaid, draft: invoice.invoiceDraft, pending: invoice.invoicePending }"
+      >
+        <div class="icon__wrapper">
+          <i class="fas fa-dot-circle" />
+        </div>
+        <div class="invoice__status--text">
+          <span v-if="invoice.invoicePaid">Paid</span>
+          <span v-if="invoice.invoiceDraft">Draft</span>
+          <span v-if="invoice.invoicePending">Pending</span>
+        </div>
+      </div>
+      <div class="invoice__icon">
+        <i class="fas fa-lg fa-chevron-circle-right" />
+      </div>
+    </li>
+  </nuxt-link>
 </template>
 
 <script>
 export default {
   props: {
-    invoice: Object
+    invoice: {
+      type: Object,
+      default () {}
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+
+nuxt-link {
+  color: inherit;
+  text-decoration: none;
+}
 
 .invoice {
   display: flex;

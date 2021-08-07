@@ -1,7 +1,9 @@
 <template>
   <div class="newinvoice" :class="{active : invoiceModal}">
+    <VLoading v-if="invoiceProcessing" />
+    <VEmptyWarning v-if="emptyWarning" />
     <h2>New Invoice</h2>
-    <form>
+    <form ref="form" @submit.prevent="submitForm">
       <fieldset>
         <!-- Bill From -->
         <legend>Bill from</legend>
@@ -131,17 +133,23 @@
             required
             type="text"
           >
+            <option value="7">
+              Net 7 Days
+            </option>
+            <option value="14">
+              Net 14 Days
+            </option>
             <option value="30">
               Net 30 Days
             </option>
             <option value="60">
-              Net 60
+              Net 60 Days
             </option>
           </select>
         </div>
         <div class="flex__col">
-          <label for="description">Project Description</label>
-          <input id="description" type="text" name="description">
+          <label for="description">Product Description</label>
+          <input id="description" v-model="productDescription" type="text" name="description">
         </div>
       </fieldset>
       <fieldset>
@@ -166,29 +174,27 @@
             </tr>
           </thead>
           <tbody>
-            <client-only>
-              <tr
-                v-for="(item,index) in invoiceItemList"
-                :key="index"
-                class="table__items"
-              >
-                <td class="item__name">
-                  <input v-model="item.itemName" type="text">
-                </td>
-                <td class="item__qty">
-                  <input v-model="item.qty" type="text">
-                </td>
-                <td class="item__price">
-                  <input v-model="item.price" type="text">
-                </td>
-                <td class="total">
-                  ${{ (item.total = item.price * item.qty) }}
-                </td>
-                <div class="icon__wrapper">
-                  <i class="fas fa-trash-alt" @click="deleteInvoiceItem(item.id)" />
-                </div>
-              </tr>
-            </client-only>
+            <tr
+              v-for="(item,index) in invoiceItemList"
+              :key="index"
+              class="table__items"
+            >
+              <td class="item__name">
+                <input v-model="item.itemName" required type="text" value="">
+              </td>
+              <td class="item__qty">
+                <input v-model="item.qty" required type="number" value="0">
+              </td>
+              <td class="item__price">
+                <input v-model="item.price" required type="number" value="0" step="any">
+              </td>
+              <td class="total">
+                ${{ (item.total = item.price * item.qty) }}
+              </td>
+              <div class="icon__wrapper">
+                <i class="fas fa-trash-alt" @click="deleteInvoiceItem(item.id)" />
+              </div>
+            </tr>
           </tbody>
         </table>
         <div class="form__button" @click="addNewInvoiceItem">
@@ -197,15 +203,15 @@
         </div>
       </fieldset>
       <div class="invoice__action">
-        <div class="btn btn--discard" @click="discardInvoice">
+        <button type="button" class="btn btn--discard" @click="closeInvoice">
           Discard
-        </div>
-        <div class="btn btn--draft">
+        </button>
+        <button type="submit" class="btn btn--draft" @click="saveDraft">
           Save as Draft
-        </div>
-        <div class="btn btn--save">
+        </button>
+        <button type="submit" class="btn btn--save" @click="publishInvoice">
           Save & Send
-        </div>
+        </button>
       </div>
     </form>
   </div>
@@ -213,12 +219,15 @@
 
 <script>
 
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import { v4 as uuidv4 } from 'uuid'
+import db from '~/plugins/firebaseInit'
 
 export default {
   data () {
     return {
+      emptyWarning: false,
+      invoiceProcessing: false,
       dateOptions: {
         year: 'numeric',
         month: 'short',
@@ -241,6 +250,8 @@ export default {
       paymentDueDate: null,
       productDescription: null,
       invoicePending: null,
+      invoicePaid: null,
+      status: null,
       invoiceDraft: null,
       invoiceItemList: [],
       invoiceTotal: 0
@@ -249,6 +260,9 @@ export default {
   computed: {
     ...mapState([
       'invoiceModal'
+    ]),
+    ...mapActions([
+      'getInvoices'
     ])
   },
   watch: {
@@ -263,9 +277,29 @@ export default {
     this.invoiceDate = new Date(this.invoiceDateUnix).toLocaleDateString('en-us', this.dateOptions)
   },
   methods: {
-    discardInvoice () {
-      this.$store.dispatch('toggleInvoice')
+    closeInvoice () {
+      this.$store.dispatch('toggleModal')
+      this.clearFormInput()
+    },
+    clearFormInput () {
+      this.invoiceDateUnix = Date.now()
+      this.invoiceDate = new Date(this.invoiceDateUnix).toLocaleDateString('en-us', this.dateOptions)
+      this.paymentTerms = null
+      this.paymentDueDateUnix = null
+      this.paymentDueDate = null
+      this.billerStreetAddress = null
+      this.billerCity = null
+      this.billerPostCode = null
+      this.billerCountry = null
+      this.clientName = null
+      this.clientEmail = null
+      this.clientStreetAddress = null
+      this.clientCity = null
+      this.clientPostCode = null
+      this.clientCountry = null
+      this.productDescription = null
       this.invoiceItemList = []
+      this.invoiceTotal = 0
     },
     addNewInvoiceItem () {
       this.invoiceItemList.push({
@@ -274,6 +308,62 @@ export default {
         qty: '',
         price: 0
       })
+      this.emptyWarning = false
+    },
+    deleteInvoiceItem (id) {
+      this.invoiceItemList = this.invoiceItemList.filter(item => item.id !== id)
+    },
+    calcInvoiceTotal () {
+      this.invoiceTotal = 0
+      this.invoiceItemList.forEach((item) => {
+        this.invoiceTotal += item.total
+      })
+    },
+    publishInvoice () {
+      this.$store.dispatch('resetModal')
+      this.invoicePending = true
+    },
+    saveDraft () {
+      this.invoiceDraft = true
+    },
+    async uploadInvoice () {
+      if (this.invoiceItemList.length <= 0) {
+        this.emptyWarning = true
+        return
+      }
+      this.invoiceProcessing = true
+      this.calcInvoiceTotal()
+      const dataBase = db.collection('invoices').doc()
+
+      await dataBase.set({
+        id: `#${uuidv4().slice(1, 6).toUpperCase()}`,
+        billerStreetAddress: this.billerStreetAddress,
+        billerCity: this.billerCity,
+        billerPostCode: this.billerPostCode,
+        billerCountry: this.billerCountry,
+        clientName: this.clientName,
+        clientEmail: this.clientEmail,
+        clientStreetAddress: this.clientStreetAddress,
+        clientCity: this.clientCity,
+        clientPostCode: this.clientPostCode,
+        clientCountry: this.clientCountry,
+        invoiceDate: this.invoiceDate,
+        paymentTerms: this.paymentTerms,
+        paymentDueDate: this.paymentDueDate,
+        productDescription: this.productDescription,
+        invoiceItemList: this.invoiceItemList,
+        invoiceTotal: this.invoiceTotal,
+        invoicePending: this.invoicePending,
+        invoiceDraft: this.invoiceDraft,
+        invoicePaid: this.invoicePaid
+      })
+      this.invoiceProcessing = false
+      this.$store.dispatch('getInvoices')
+      this.$store.dispatch('toggleInvoice')
+    },
+    submitForm () {
+      this.uploadInvoice()
+      this.clearFormInput()
     }
   }
 }
@@ -286,14 +376,14 @@ h2 {
 }
 
 .newinvoice {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 70rem;
 
   background: #fff;
   z-index: 1;
-  padding: 14.3rem 4rem 4rem 14.3rem;
+  padding: 10.3rem 4rem 4rem 14.3rem;
 
   height: 100%;
   margin: 0em;
@@ -304,6 +394,7 @@ h2 {
   @media screen and (max-width: 999px) {
     margin-left: -10.3rem;
     max-height: calc(100vh);
+    padding: 14.3rem 4rem 4rem 14.3rem
   }
 
   @media screen and (max-width: 767px) {
@@ -357,6 +448,11 @@ select {
   &:focus {
      border: 1px solid #7B5CFA;
   }
+}
+
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px white inset;
+    -webkit-text-fill-color: #7e88c4;;
 }
 
 input[type=date] {
@@ -471,6 +567,8 @@ table {
     color: white;
     font-weight: 700;
     text-align: center;
+    outline: none;
+    border: none;
 
     @media screen and (max-width: 568px) {
       width: 100%;
@@ -517,6 +615,18 @@ table {
     }
   }
 
+}
+
+// Number input reset
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 // Scrollbar

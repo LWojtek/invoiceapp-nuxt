@@ -1,6 +1,11 @@
 <template>
   <main class="container">
-    <h1>This will be login page</h1>
+    <h1>Home page</h1>
+    <nuxt-link to="/invoices">
+      <h1>
+        Invoices page
+      </h1>
+    </nuxt-link>
   </main>
 </template>
 

@@ -5,14 +5,14 @@
         Filter by status
       </div>
       <div class="icon__wrapper">
-        <i class="fas fa-chevron-down" />
+        <i class="fas fa-chevron-down" :class="{ active : modal }" />
       </div>
     </div>
-    <div class="invoices__header--btn">
+    <div class="invoices__header--btn" @click="showNewInvoice">
       <div class="icon__wrapper">
         <i class="fas fa-2x fa-plus-circle" />
       </div>
-      <div class="text__wrapper" @click="showNewInvoice">
+      <div class="text__wrapper">
         New Invoice
       </div>
     </div>
@@ -54,7 +54,15 @@ export default {
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: all 0.25s ease;
+  transition: all 150ms ease;
+}
+
+i {
+  transition: 150ms transform;
+
+  &.active {
+    transform: rotate(180deg)
+  }
 }
 
 </style>

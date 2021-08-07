@@ -28,6 +28,7 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    '~/plugins/firebaseInit.js'
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -45,21 +46,33 @@ export default {
     '@nuxtjs/axios',
     'nuxt-uid-module'
   ],
+
   router: {
     extendRoutes (routes) {
       routes.push(
         {
           name: 'index',
           path: '/',
-          component: '~/pages/index.vue'
+          component: '@/components/pages/index.vue'
         },
         {
           name: 'invoices',
           path: '/invoices',
-          component: '~/pages/invoices.vue'
+          component: '@/components/pages/invoices.vue'
+        },
+        {
+          name: 'invoice',
+          path: '/invoices/:invoiceId',
+          component: '~/components/pages/invoice.vue'
         }
+        // {
+        //   name: '404',
+        //   path: '/404',
+        //   component: '@/components/pages/index.vue'
+        // }
       )
     }
+
   },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios

@@ -2,7 +2,7 @@
   <div class="invoices__header">
     <div class="invoices__header--left">
       <h1>Invoices</h1>
-      <span>Showing {{ invoices.length }} invoices</span>
+      <!-- <span>Showing {{ invoices.length }} invoices</span> -->
     </div>
     <VFilters />
   </div>

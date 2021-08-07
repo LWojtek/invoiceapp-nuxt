@@ -2,10 +2,13 @@
   <div class="invoices__content">
     <VInvoicesHeader />
     <VInvoicesContainer />
+    <transition name="popup">
+      <VModal v-if="modal" class="popup" />
+    </transition>
     <transition name="modal">
       <VInvoiceModal />
     </transition>
-    <div class="blur" :class="{active : invoiceModal}" />
+    <div class="blur" :class="{active : invoiceModal}" @click="discardInvoice" />
   </div>
 </template>
 
@@ -14,17 +17,31 @@ import { mapState } from 'vuex'
 
 export default {
   computed: {
-    ...mapState(['invoiceModal'])
+    ...mapState(['invoiceModal', 'modal'])
   },
-  created () {
-    this.$nuxt.$on('showInvoice', () => {
-      this.isActive = !this.isActive
-    })
+  beforeCreate () {
+    this.$store.dispatch('getInvoices')
+  },
+  methods: {
+    discardInvoice () {
+      this.$store.dispatch('toggleModal')
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+
+.popup-enter,
+.popup-leave-to {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.popup-enter-active,
+.popup-leave-active {
+  transition: all 0.25s ease;
+}
 
   .invoices__content {
     width: 100vw;
@@ -37,18 +54,19 @@ export default {
   }
 
   .blur {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
-    width: 100vw;
+    bottom: 0;
+    right:0;
+
     background-color: rgba(0,0,0, .5);
     opacity: 0;
     z-index: -1;
     transition: opacity 400ms;
 
     @media screen and (max-width: 999px){
-      max-height: calc(100vh);
+      max-height: 100vh;
     }
 
     &.active {

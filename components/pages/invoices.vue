@@ -5,7 +5,9 @@
 </template>
 
 <script>
+
 export default {
+
   name: 'VInvoices'
 }
 </script>
@@ -16,7 +18,6 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-
   width: 100%;
 
   @media screen and (max-width: 999px){
