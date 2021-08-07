@@ -206,7 +206,7 @@
         <button type="button" class="btn btn--discard" @click="closeInvoice">
           Discard
         </button>
-        <button type="submit" class="btn btn--draft" @click="saveDraft">
+        <button class="btn btn--draft" @click.prevent="saveDraft">
           Save as Draft
         </button>
         <button type="submit" class="btn btn--save" @click="publishInvoice">
@@ -325,6 +325,7 @@ export default {
     },
     saveDraft () {
       this.invoiceDraft = true
+      this.uploadInvoice()
     },
     async uploadInvoice () {
       if (this.invoiceItemList.length <= 0) {
@@ -336,7 +337,7 @@ export default {
       const dataBase = db.collection('invoices').doc()
 
       await dataBase.set({
-        id: `#${uuidv4().slice(1, 6).toUpperCase()}`,
+        id: `${uuidv4().slice(1, 6).toUpperCase()}`,
         billerStreetAddress: this.billerStreetAddress,
         billerCity: this.billerCity,
         billerPostCode: this.billerPostCode,
@@ -358,6 +359,7 @@ export default {
         invoicePaid: this.invoicePaid
       })
       this.invoiceProcessing = false
+
       this.$store.dispatch('getInvoices')
       this.$store.dispatch('toggleInvoice')
     },

@@ -53,7 +53,7 @@ export const mutations = {
     state.invoicesLoaded = true
   },
   setInvoiceData (state, payload) {
-    state.invoiceData.push(payload)
+    state.invoiceData = payload
   }
 }
 
@@ -70,33 +70,8 @@ export const actions = {
   async getInvoices ({ commit, state }) {
     const getData = db.collection('invoices')
     const results = await getData.get()
-    results.forEach((doc) => {
-      if (!state.invoiceData.some(invoice => invoice.id === doc.id)) {
-        const data = {
-          id: doc.data().id,
-          billerStreetAddress: doc.data().billerStreetAddress,
-          billerCity: doc.data().billerCity,
-          billerPostCode: doc.data().billerPostCode,
-          billerCountry: doc.data().billerCountry,
-          clientName: doc.data().clientName,
-          clientEmail: doc.data().clientEmail,
-          clientStreetAddress: doc.data().clientStreetAddress,
-          clientCity: doc.data().clientCity,
-          clientPostCode: doc.data().clientPostCode,
-          clientCountry: doc.data().clientCountry,
-          invoiceDate: doc.data().invoiceData,
-          paymentTerms: doc.data().paymentTerms,
-          paymentDueDate: doc.data().paymentDueDate,
-          productDescription: doc.data().productDescription,
-          invoiceItemList: doc.data().invoiceItemList,
-          invoiceTotal: doc.data().invoiceTotal,
-          invoicePending: doc.data().invoicePending,
-          invoiceDraft: doc.data().invoiceDraft,
-          invoicePaid: doc.data().invoicePaid
-        }
-        commit('setInvoiceData', data)
-      }
-    })
+    const dataArr = results.docs.map(doc => doc.data())
+    commit('setInvoiceData', dataArr)
     commit('invoicesLoaded')
   }
 
